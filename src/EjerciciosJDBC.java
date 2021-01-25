@@ -1,3 +1,4 @@
+import java.lang.reflect.Executable;
 import java.sql.*;
 
 public class EjerciciosJDBC {
@@ -28,16 +29,13 @@ public class EjerciciosJDBC {
     }
 
     public void consultarAlumnos(String tabla, String col, String patron) {
-        try {
-            Statement st = conexion.createStatement();
-            ResultSet rs = st.executeQuery("select * from "+tabla+" where " + col + " like \"%" + patron + "%\"");
+        try (Statement st = conexion.createStatement()) {
+            ResultSet rs = st.executeQuery("select * from " + tabla + " where " + col + " like \"%" + patron + "%\"");
             while (rs.next()) {
                 System.out.println(rs.getInt(1) + "\t" + rs.getString("nombre") + "\t" + rs.getString("apellidos"));
             }
-            // ResultSet total = st.executeQuery("select count(*) as total from alumnos
-            // where nombre like \"%" + patron + "%\"");
             System.out.println("Número resultados: " + (rs.getRow() - 1));
-            st.close();
+            // select count(*) as total from alumnos where nombre like '%" + patron +"%'
         } catch (SQLException e) {
             System.out.println("SQLException: " + e.getLocalizedMessage());
             System.out.println("SQLState: " + e.getSQLState());
@@ -46,141 +44,116 @@ public class EjerciciosJDBC {
     }
 
     public void insertarAlumno(String nombre, String apellidos, int altura, int aula) {
-        try {
-            Statement sta = this.conexion.createStatement();
-            if (existeDato("aulas", "numero", aula)) {
-                int filasAfectadas = sta
-                        .executeUpdate("INSERT INTO alumnos (nombre, apellidos, altura, aula) VALUES (\"" + nombre
-                                + "\", \"" + apellidos + "\"," + altura + ", " + aula + ")");
+        if (existeDato("aulas", "numero", aula)) {
+            String query = String.format(
+                    "INSERT INTO alumnos (nombre, apellidos, altura, aula) VALUES (\"%s\", \"%s\", %d, %d)", nombre,
+                    apellidos, altura, aula);
+            int filasAfectadas = executeUPDATE(query);
+            if(filasAfectadas != -1){
                 System.out.println("Filas insertadas: " + filasAfectadas);
-            } else {
-                System.out.println("Error: No existe ningún aula con ese código");
             }
-            sta.close();
-        } catch (SQLException e) {
-            System.out.println("Error: " + e.getLocalizedMessage());
+        } else {
+            System.out.println("Error: No existe ningún aula con ese código");
         }
     }
 
     public void insertarMateria(int cod, String nombre) {
-        try {
-            Statement sta = this.conexion.createStatement();
-            if (!existeDato("asignaturas", "cod", cod)) {
-                int filasAfectadas = sta.executeUpdate(
-                        "INSERT INTO asignaturas (cod, nombre) VALUES (" + cod + ", \"" + nombre + "\")");
+        if (!existeDato("asignaturas", "cod", cod)) {
+            int filasAfectadas = executeUPDATE(
+                    "INSERT INTO asignaturas (cod, nombre) VALUES (" + cod + ", '" + nombre + "')");
+            if(filasAfectadas != -1){
                 System.out.println("Filas inseridas: " + filasAfectadas);
-            } else {
-                System.out.println("Error: Ya existe un aula con ese código");
             }
-            sta.close();
-        } catch (SQLException e) {
-            System.out.println("Error: " + e.getLocalizedMessage());
+        } else {
+            System.out.println("Error: Ya existe un aula con ese código");
         }
     }
 
     public void eliminarAlumnoMateria(String tabla, String col, int cod) {
-        try {
-            Statement sta = this.conexion.createStatement();
-            if (existeDato(tabla, col, cod)) {
-                int filasAfectadas = sta.executeUpdate("DELETE FROM " + tabla + " WHERE " + col + "=" + cod);
+        if (existeDato(tabla, col, cod)) {
+            int filasAfectadas = executeUPDATE("DELETE FROM " + tabla + " WHERE " + col + "=" + cod);
+            if(filasAfectadas != -1){
                 System.out.println("Filas eliminadas: " + filasAfectadas);
-            } else {
-                System.out.println("Error: No existe ninguna fila con ese código");
             }
-            sta.close();
-        } catch (SQLException e) {
-            System.out.println("Error: " + e.getLocalizedMessage());
+        } else {
+            System.out.println("Error: No existe ninguna fila con ese código");
         }
     }
 
     public void modificarAlumno(int cod, String nombre, String apellidos, int altura, int aula) {
-        try {
-            Statement sta = this.conexion.createStatement();
-            if (existeDato("alumnos", "codigo", cod)) {
-                if(existeDato("aulas", "numero", aula)){
-                    int filasAfectadas = sta.executeUpdate("UPDATE alumnos set nombre='" + nombre + "', apellidos='"
-                        + apellidos + "', altura=" + altura + ", aula=" + aula + " WHERE codigo = " + cod);
-                System.out.println("Filas modificadas: " + filasAfectadas);
-                }else{
-                    System.out.println("Error: No existe ningún aula con ese código");
-                }                
-            }else{
-                System.out.println("Error: No existe ningún alumno con ese código");
+        if (existeDato("alumnos", "codigo", cod)) {
+            if (existeDato("aulas", "numero", aula)) {
+                int filasAfectadas = executeUPDATE("UPDATE alumnos set nombre='" + nombre + "', apellidos='" + apellidos
+                        + "', altura=" + altura + ", aula=" + aula + " WHERE codigo = " + cod);
+                if(filasAfectadas != -1){
+                    System.out.println("Filas modificadas: " + filasAfectadas);  
+                }
+            } else {
+                System.out.println("Error: No existe ningún aula con ese código");
             }
-            sta.close();
-        } catch (SQLException e) {
-            System.out.println("Error: " + e.getLocalizedMessage());
+        } else {
+            System.out.println("Error: No existe ningún alumno con ese código");
         }
     }
 
     public void modificarMateria(int cod, String nombre) {
-        try {
-            Statement sta = this.conexion.createStatement();
-            if (existeDato("asignaturas", "cod", cod)) {
-                int filasAfectadas = sta
-                        .executeUpdate("UPDATE asignaturas set nombre='" + nombre + "' WHERE codigo = " + cod);
+        if (existeDato("asignaturas", "cod", cod)) {
+            int filasAfectadas = executeUPDATE("UPDATE asignaturas set nombre='" + nombre + "' WHERE cod = " + cod);
+            if(filasAfectadas != -1){
                 System.out.println("Filas modificadas: " + filasAfectadas);
             }
-            sta.close();
-        } catch (SQLException e) {
-            System.out.println("Error: " + e.getLocalizedMessage());
         }
     }
 
     // Nombre aulas con alumnos
+    // c.aulasConAlumnos("nombreAula", "aulas", "alumnos", "numero", "aula");
+
     public void aulasConAlumnos(String col, String tabla1, String tabla2, String colTabla1, String colTabla2) {
-        try {
-            Statement sta = this.conexion.createStatement();
-            ResultSet rs = sta.executeQuery("select distinct " + tabla1 + "." + col + " from " + tabla1 + " join "
-                    + tabla2 + " on " + tabla1 + "." + colTabla1 + "=" + tabla2 + "." + colTabla2);
+        try (Statement sta = this.conexion.createStatement()) {
+            String query = String.format("select distinct %s.%s from %s join %s on %s.%s = %s.%s", tabla1, col, tabla1,
+                    tabla2, tabla1, colTabla1, tabla2, colTabla2);
+            ResultSet rs = sta.executeQuery(query);
             while (rs.next()) {
-                // if(!rs.getString("nombreAula").equals("null"))
                 System.out.println(rs.getString("nombreAula"));
             }
-            sta.close();
         } catch (SQLException e) {
             System.out.println("Error: " + e.getLocalizedMessage());
         }
     }
 
-    public void materiasSenAlumnos(String col, String t1, String t2, String colT1, String colT2) {
-        try {
-            Statement sta = this.conexion.createStatement();
-            ResultSet rs = sta.executeQuery("select " + t1 + "." + col + " from " + t1 + " left join " + t2 + " on "
-                    + t1 + "." + colT1 + " = " + t2 + "." + colT2 + " where " + "nota is null");
+    public void materiasSenAlumnos() {
+        try (Statement sta = this.conexion.createStatement()){            
+            String query = "select asignaturas.nombre from asignaturas left join notas on asignaturas.cod = notas.asignatura where nota is null";
+            ResultSet rs = sta.executeQuery(query);
             while (rs.next()) {
-                System.out.println(rs.getString(col));
+                System.out.println(rs.getString("nombre"));
             }
-            sta.close();
         } catch (SQLException e) {
             System.out.println("Error: " + e.getLocalizedMessage());
         }
     }
 
-    public void alumAprobaronAlguna() {
-        try {
-            Statement sta = this.conexion.createStatement();
-            ResultSet rs = sta.executeQuery(
-                    "select alumnos.nombre, asignaturas.NOMBRE, notas.nota from alumnos, asignaturas, notas where alumnos.codigo = notas.alumno and asignaturas.COD = notas.asignatura and notas.nota >= 5");
+    public void alumAprobaronAlguna() {        
+        try(Statement sta = this.conexion.createStatement()) {            
+            ResultSet rs = sta.executeQuery("select distinct alumnos.nombre, alumnos.apellidos from notas "
+                    + " join asignaturas on asignaturas.COD = notas.asignatura "
+                    + " join alumnos on alumnos.codigo = notas.alumno where notas.nota >= 5");
             while (rs.next()) {
-                System.out.println(rs.getString(1) + "\t" + rs.getString(2) + "\t" + rs.getInt(3));
+                System.out.println(rs.getString(1) + " " + rs.getString(2) + "\t");
             }
-            sta.close();
         } catch (SQLException e) {
             System.out.println("Error: " + e.getLocalizedMessage());
         }
     }
 
-    public void consultarAlumno(String cadena, int altura) {
-        try {
-            Statement sta = this.conexion.createStatement();
+    public void consultarAlumnoSinPS(String cadena, int altura) {
+        try(Statement sta = this.conexion.createStatement()) {            
             ResultSet rs = sta.executeQuery(
                     "select nombre from alumnos where nombre like '%" + cadena + "%' and altura>" + altura);
             while (rs.next()) {
                 rs.getString(1);
                 System.out.println(rs.getString("nombre"));
-            }
-            sta.close();
+            }            
         } catch (SQLException e) {
             System.out.println("Error: " + e.getLocalizedMessage());
         }
@@ -188,15 +161,11 @@ public class EjerciciosJDBC {
 
     public void consultarAlumnoPS(String cadena, int altura) {
         String query = "select nombre from alumnos where nombre like ? and altura > ?";
-        try {
-            // this.conexion = DriverManager.getConnection("jdbc:mariadb://localhost:3306/add?useServerPrepStmts=true", "root",
-            //         ""); --> (Error: Too many connections)
-            if (this.ps == null)
-                this.ps = this.conexion.prepareStatement(query);
+        try (PreparedStatement ps = conexion.prepareStatement(query)) {
             ps.setString(1, cadena);
             ps.setInt(2, altura);
             ResultSet rs = ps.executeQuery();
-            while (rs.next()) {                
+            while (rs.next()) {
                 System.out.println(rs.getString(1));
             }
         } catch (SQLException e) {
@@ -204,22 +173,34 @@ public class EjerciciosJDBC {
         }
     }
 
-    public boolean existeDato(String tabla, String col, int cod) {
-        try {
-            String query = "SELECT " + col + " FROM " + tabla;
-            Statement sta = this.conexion.createStatement();
-            ResultSet rs = sta.executeQuery(query);
-            while (rs.next()) {
-                if (rs.getInt(col) == cod) {
-                    // System.out.println("OK");
-                    return true;
-                }
-            }
-            sta.close();
+    public void agregarColumna(String tabla, String nombreCol, String tipoDato, String propiedades) {
+        String query = String.format("ALTER TABLE %s ADD %s %s %s", tabla, nombreCol, tipoDato, propiedades);
+        int col = executeUPDATE(query);
+        if(col != 1){
+            System.out.println("Columna agregada");
+        }        
+    }
+
+    public int executeUPDATE(String query) {
+        try (Statement sta = this.conexion.createStatement()) {
+            int filasAfectadas = sta.executeUpdate(query);
+            return filasAfectadas;
         } catch (SQLException e) {
-            System.out.println("Error: " + e.getLocalizedMessage());
+            System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage());            
+        }                
+        return -1;
+    }
+
+    public boolean existeDato(String tabla, String col, int cod) {
+        String query = "SELECT " + col + " FROM " + tabla + " WHERE " + col + "=" + cod;            
+        try(Statement sta = this.conexion.createStatement()) {
+            ResultSet rs = sta.executeQuery(query);
+            if(rs.next()){
+                return true;
+            }            
+        } catch (SQLException e) {
+            System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
         }
         return false;
     }
-
 }
