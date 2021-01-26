@@ -1,14 +1,5 @@
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.Driver;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Enumeration;
-
-import javax.xml.namespace.QName;
 
 //https://docs.oracle.com/javase/7/docs/api/java/sql/DatabaseMetaData.html
 

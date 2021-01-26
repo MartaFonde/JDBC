@@ -3,7 +3,7 @@ public class AppMetadata {
         EjerMetadatos md = new EjerMetadatos();
 
         md.abrirConexion("add", "localhost", "root", "");
-        // md.infoBD("add");
+        //md.infoBD("add");
         //md.getAllDB();                
         //md.showTables("add");
         //md.showViews("add");
@@ -13,8 +13,8 @@ public class AppMetadata {
         //md.keys("add");
         //md.infoConsulta();
 
-        md.listDrivers();
+        //md.listDrivers();
 
-        md.pecharConexion();
+        //md.pecharConexion();
     }
 }

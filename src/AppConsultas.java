@@ -1,10 +1,9 @@
 
-public class App {
+public class AppConsultas {
 
     public static void main(String[] args) throws Exception {
-        // Class.forName("org.mariadb.jdbc.Driver");
-        EjerciciosJDBC c = new EjerciciosJDBC();
-        c.abrirConexion("add", "localhost", "root", "");
+        //Class.forName("org.mariadb.jdbc.Driver");
+        ConsultasJDBC c = new ConsultasJDBC();
 
         // c.consultarAlumnos("alumnos", "nombre", "fr");
         // c.insertarAlumno("Iris", "Seijo", 165, 5);
@@ -38,9 +37,7 @@ public class App {
         // 10000 Sen ps 4928 mseg. Con ps 5144 mseg
         // 100000 Sen ps 54957 mseg. Con ps 50048 mseg
 
-        // c.agregarColumna("alumnos", "edad", "int(2)", "unsigned not null default
-        // 18");
+        //c.agregarColumna("alumnos", "edad", "int(2)", "unsigned not null default 18");
 
-        c.pecharConexion();
     }
 }

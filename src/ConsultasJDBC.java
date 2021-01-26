@@ -1,7 +1,6 @@
-import java.lang.reflect.Executable;
 import java.sql.*;
 
-public class EjerciciosJDBC {
+public class ConsultasJDBC {
     private Connection conexion;
     PreparedStatement ps = null;
 
@@ -20,15 +19,16 @@ public class EjerciciosJDBC {
         }
     }
 
-    public void pecharConexion() {
+    public void cerrarConexion() {
         try {
             conexion.close();
         } catch (SQLException e) {
-            System.out.println("Error o cerrar a conexión: " + e.getLocalizedMessage());
+            System.out.println("Error al cerrar la conexión: " + e.getLocalizedMessage());
         }
     }
 
     public void consultarAlumnos(String tabla, String col, String patron) {
+        abrirConexion("add", "localhost", "root", "");
         try (Statement st = conexion.createStatement()) {
             ResultSet rs = st.executeQuery("select * from " + tabla + " where " + col + " like \"%" + patron + "%\"");
             while (rs.next()) {
@@ -41,9 +41,11 @@ public class EjerciciosJDBC {
             System.out.println("SQLState: " + e.getSQLState());
             System.out.println("Código error: " + e.getErrorCode());
         }
+        cerrarConexion();
     }
 
     public void insertarAlumno(String nombre, String apellidos, int altura, int aula) {
+        abrirConexion("add", "localhost", "root", "");
         if (existeDato("aulas", "numero", aula)) {
             String query = String.format(
                     "INSERT INTO alumnos (nombre, apellidos, altura, aula) VALUES (\"%s\", \"%s\", %d, %d)", nombre,
@@ -55,9 +57,11 @@ public class EjerciciosJDBC {
         } else {
             System.out.println("Error: No existe ningún aula con ese código");
         }
+        cerrarConexion();
     }
 
     public void insertarMateria(int cod, String nombre) {
+        abrirConexion("add", "localhost", "root", "");
         if (!existeDato("asignaturas", "cod", cod)) {
             int filasAfectadas = executeUPDATE(
                     "INSERT INTO asignaturas (cod, nombre) VALUES (" + cod + ", '" + nombre + "')");
@@ -67,9 +71,11 @@ public class EjerciciosJDBC {
         } else {
             System.out.println("Error: Ya existe un aula con ese código");
         }
+        cerrarConexion();
     }
 
     public void eliminarAlumnoMateria(String tabla, String col, int cod) {
+        abrirConexion("add", "localhost", "root", "");
         if (existeDato(tabla, col, cod)) {
             int filasAfectadas = executeUPDATE("DELETE FROM " + tabla + " WHERE " + col + "=" + cod);
             if(filasAfectadas != -1){
@@ -78,9 +84,11 @@ public class EjerciciosJDBC {
         } else {
             System.out.println("Error: No existe ninguna fila con ese código");
         }
+        cerrarConexion();
     }
 
     public void modificarAlumno(int cod, String nombre, String apellidos, int altura, int aula) {
+        abrirConexion("add", "localhost", "root", "");
         if (existeDato("alumnos", "codigo", cod)) {
             if (existeDato("aulas", "numero", aula)) {
                 int filasAfectadas = executeUPDATE("UPDATE alumnos set nombre='" + nombre + "', apellidos='" + apellidos
@@ -94,21 +102,25 @@ public class EjerciciosJDBC {
         } else {
             System.out.println("Error: No existe ningún alumno con ese código");
         }
+        cerrarConexion();
     }
 
     public void modificarMateria(int cod, String nombre) {
+        abrirConexion("add", "localhost", "root", "");
         if (existeDato("asignaturas", "cod", cod)) {
             int filasAfectadas = executeUPDATE("UPDATE asignaturas set nombre='" + nombre + "' WHERE cod = " + cod);
             if(filasAfectadas != -1){
                 System.out.println("Filas modificadas: " + filasAfectadas);
             }
         }
+        cerrarConexion();
     }
 
     // Nombre aulas con alumnos
     // c.aulasConAlumnos("nombreAula", "aulas", "alumnos", "numero", "aula");
 
     public void aulasConAlumnos(String col, String tabla1, String tabla2, String colTabla1, String colTabla2) {
+        abrirConexion("add", "localhost", "root", "");
         try (Statement sta = this.conexion.createStatement()) {
             String query = String.format("select distinct %s.%s from %s join %s on %s.%s = %s.%s", tabla1, col, tabla1,
                     tabla2, tabla1, colTabla1, tabla2, colTabla2);
@@ -119,9 +131,11 @@ public class EjerciciosJDBC {
         } catch (SQLException e) {
             System.out.println("Error: " + e.getLocalizedMessage());
         }
+        cerrarConexion();
     }
 
     public void materiasSenAlumnos() {
+        abrirConexion("add", "localhost", "root", "");
         try (Statement sta = this.conexion.createStatement()){            
             String query = "select asignaturas.nombre from asignaturas left join notas on asignaturas.cod = notas.asignatura where nota is null";
             ResultSet rs = sta.executeQuery(query);
@@ -131,9 +145,11 @@ public class EjerciciosJDBC {
         } catch (SQLException e) {
             System.out.println("Error: " + e.getLocalizedMessage());
         }
+        cerrarConexion();
     }
 
-    public void alumAprobaronAlguna() {        
+    public void alumAprobaronAlguna() {  
+        abrirConexion("add", "localhost", "root", "");      
         try(Statement sta = this.conexion.createStatement()) {            
             ResultSet rs = sta.executeQuery("select distinct alumnos.nombre, alumnos.apellidos from notas "
                     + " join asignaturas on asignaturas.COD = notas.asignatura "
@@ -144,9 +160,11 @@ public class EjerciciosJDBC {
         } catch (SQLException e) {
             System.out.println("Error: " + e.getLocalizedMessage());
         }
+        cerrarConexion();
     }
 
     public void consultarAlumnoSinPS(String cadena, int altura) {
+        abrirConexion("add", "localhost", "root", "");
         try(Statement sta = this.conexion.createStatement()) {            
             ResultSet rs = sta.executeQuery(
                     "select nombre from alumnos where nombre like '%" + cadena + "%' and altura>" + altura);
@@ -157,9 +175,11 @@ public class EjerciciosJDBC {
         } catch (SQLException e) {
             System.out.println("Error: " + e.getLocalizedMessage());
         }
+        cerrarConexion();
     }
 
     public void consultarAlumnoPS(String cadena, int altura) {
+        abrirConexion("add", "localhost", "root", "");
         String query = "select nombre from alumnos where nombre like ? and altura > ?";
         try (PreparedStatement ps = conexion.prepareStatement(query)) {
             ps.setString(1, cadena);
@@ -171,14 +191,17 @@ public class EjerciciosJDBC {
         } catch (SQLException e) {
             System.out.println("Error: " + e.getLocalizedMessage());
         }
+        cerrarConexion();
     }
 
     public void agregarColumna(String tabla, String nombreCol, String tipoDato, String propiedades) {
+        abrirConexion("add", "localhost", "root", "");
         String query = String.format("ALTER TABLE %s ADD %s %s %s", tabla, nombreCol, tipoDato, propiedades);
         int col = executeUPDATE(query);
         if(col != 1){
             System.out.println("Columna agregada");
         }        
+        cerrarConexion();
     }
 
     public int executeUPDATE(String query) {
