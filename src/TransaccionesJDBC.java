@@ -11,6 +11,7 @@ public class TransaccionesJDBC {
     ConsultasJDBC j = new ConsultasJDBC();
     Savepoint p;
     PreparedStatement ps = null;
+    PreparedStatement psPatron = null;
 
     public void insertConTransaccion(){
         abrirConexion("add", "localhost", "root", "");
@@ -91,15 +92,81 @@ public class TransaccionesJDBC {
             cs.setString(2, nombre);
             ResultSet rs = cs.executeQuery();
             while(rs.next()){
-                System.out.println(rs.getInt(1)+"\t"+rs.getString("nomeAula")+"\t"+rs.getInt("puestos"));
+                System.out.println(rs.getInt(1)+"\t"+rs.getString("nombreAula")+"\t"+rs.getInt("puestos"));
             }            
         } catch (SQLException e) {
             System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
         }
         pecharConexion();
     }
-    //falta execute function suma 
+    
+    public void executeSuma(){
+        abrirConexion("add", "localhost", "root", "");
+        try {
+            PreparedStatement ps = this.conexion.prepareStatement("SELECT suma()");
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                System.out.println(rs.getInt(1));
+            }            
+        } catch (SQLException e) {
+            System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
+        }
+        pecharConexion();
+    }
 
+    public void search(String bd, String patron){
+        abrirConexion(bd, "localhost", "root", "");
+        String tabla, columna;
+        try(Statement sta = this.conexion.createStatement()){
+            DatabaseMetaData mt = this.conexion.getMetaData();
+            ResultSet rs = mt.getTables(bd, null, "%", null);
+            while(rs.next()){
+                if(rs.getString("TABLE_TYPE").equals("TABLE")){
+                    tabla = rs.getString("TABLE_NAME");
+                    ResultSet cols = this.conexion.getMetaData().getColumns(bd, null, rs.getString("TABLE_NAME"), "%");
+                    while(cols.next()){
+                        if(cols.getString("TYPE_NAME").equals("CHAR") || cols.getString("TYPE_NAME").equals("VARCHAR")){                            
+                            columna = cols.getString("COLUMN_NAME");
+                            //psFilasPatron(bd, tabla, columna, patron);
+                            ResultSet rss = sta.executeQuery("SELECT "+columna+" FROM "+tabla+" WHERE "+columna+" LIKE '"+patron+"'");
+                            while(rss.next()){
+                                System.out.println("BD: "+bd+"\tTabla: "+tabla+"\tCol: "+columna+"\tDato: "+rss.getString(1));
+                            }
+                        }                        
+                    } 
+                    System.out.println();
+                }
+            }    
+        }catch(SQLException e){
+            System.out.printf("Error1: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
+        }
+        pecharConexion();
+    }
+
+    public void psFilasPatron(String bd, String tabla, String col, String patron){        
+        try {
+            if(this.psPatron == null){
+                String query = "select ? from ? where ? like ?";
+                this.psPatron = this.conexion.prepareStatement(query);
+            }
+            psPatron.setString(1, col);
+            psPatron.setString(2, tabla);
+            psPatron.setString(3, col);
+            psPatron.setString(4, patron);
+            ResultSet rdo = psPatron.executeQuery();
+            while(rdo.next()){
+                System.out.println("BD: "+bd+"\tTabla: "+tabla+"\tCol: "+col+"\tDato: "+rdo.getString(1));
+            }
+            psPatron.close();
+        } catch (SQLException e) {
+            System.out.printf("Error2: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
+        }
+    }
+
+    //https://www.red-gate.com/simple-talk/sql/learn-sql-server/using-the-for-xml-clause-to-return-query-results-as-xml/
+    public void exportXML(String bd, String tabla){
+        
+    }
 
     public void access(){
         try {

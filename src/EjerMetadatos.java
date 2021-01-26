@@ -9,6 +9,7 @@ public class EjerMetadatos {
 
     // exercicio 9a
     public void infoBD(String bd) {
+        abrirConexion(bd, "localhost", "root", "");
         try {
             dbmt = this.conexion.getMetaData();
             System.out.printf(
@@ -19,11 +20,13 @@ public class EjerMetadatos {
         } catch (SQLException e) {
             System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
         }
+        pecharConexion();
     }
 
     // exercicio 9b
     // https://docs.microsoft.com/es-es/sql/connect/jdbc/reference/getcatalogs-method-sqlserverdatabasemetadata?view=sql-server-ver15
-    public void getAllDB() {
+    public void getAllDB(String bd) {
+        abrirConexion(bd, "localhost", "root", "");
         try {
             dbmt = this.conexion.getMetaData();
             ResultSet rs = dbmt.getCatalogs();
@@ -33,42 +36,34 @@ public class EjerMetadatos {
         } catch (SQLException e) {
             System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
         }
+        pecharConexion();
     }
 
-    //exercicio 9c
+    //exercicio 9c 9d
     //Para todas as táboas de bases de datos ADD obtén: o nome das táboa e o tipo de táboa.
     //http://www.chuidiang.org/java/mysql/ResultSet-DataBase-MetaData.php
-    public void showTables(String bd) { 
+    public void showTablesViews(String bd, String type) { 
         //String query = "SHOW TABLES FROM `add`";
+        abrirConexion(bd, "localhost", "root", "");
         try {
             //this.conexion.setCatalog(bd);
             DatabaseMetaData mt = this.conexion.getMetaData();
             ResultSet rs = mt.getTables(bd, null, "%", null);
             while(rs.next()){
-                System.out.println(rs.getString("TABLE_NAME")+" - "+rs.getString("TABLE_TYPE"));
-            }
-        } catch (SQLException e) {
-            System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
-        }
-    }
-
-    //exercicio 9d
-    public void showViews(String bd) {         
-        try {
-            DatabaseMetaData mt = this.conexion.getMetaData();
-            ResultSet rs = mt.getTables(bd, null, "%", null);
-            while(rs.next()){
-                if(rs.getString("TABLE_TYPE").equals("VIEW")){
+                if(rs.getString("TABLE_TYPE").equals(type.toUpperCase())){      //TABLE - VIEW
                     System.out.println(rs.getString("TABLE_NAME"));    
                 }
+                //System.out.println(rs.getString("TABLE_NAME")+" - "+rs.getString("TABLE_TYPE"));
             }
         } catch (SQLException e) {
             System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
         }
+        pecharConexion();
     }
 
     //exercicio 9e  --combinar b + c
     public void comb(String infobd){
+        abrirConexion("add", "localhost", "root", "");
         String bd;
         try {
             dbmt = this.conexion.getMetaData();
@@ -86,10 +81,12 @@ public class EjerMetadatos {
         } catch (SQLException e) {
             System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
         }
+        pecharConexion();
     }
 
     //exercicio 9f
     public void showStoredProcedure(String bd){
+        abrirConexion(bd, "localhost", "root", "");
         try {
             DatabaseMetaData mt = this.conexion.getMetaData();
             ResultSet rs = mt.getProcedures(bd, null, "%");
@@ -102,12 +99,14 @@ public class EjerMetadatos {
         } catch (SQLException e) {
             System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
         }
+        pecharConexion();
     }
 
     //exercicio 9g
     //https://www.tutorialspoint.com/java-databasemetadata-getcolumns-method-with-example
     //https://dzone.com/articles/jdbc-tutorial-extracting-database-metadata-via-jdb
     public void infoColumnsTables(String bd, String patron){
+        abrirConexion(bd, "localhost", "root", "");
         String cad = "\""+patron+"\"";
         try{
             DatabaseMetaData mt = this.conexion.getMetaData();
@@ -129,10 +128,12 @@ public class EjerMetadatos {
         }catch(SQLException e){
             System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
         }
+        pecharConexion();
     }    
 
     //exercicio 9h
     public void keys(String bd){
+        abrirConexion(bd, "localhost", "root", "");
         try{
             DatabaseMetaData mt = this.conexion.getMetaData();
             ResultSet rs = mt.getTables(bd, null, "%", null);
@@ -153,9 +154,11 @@ public class EjerMetadatos {
         }catch(SQLException e){
             System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
         }
+        pecharConexion();
     }
 
     public void infoConsulta(){
+        abrirConexion("add", "localhost", "root", "");
         String query = "select *, nombre as nom from alumnos";
         try(Statement sta = this.conexion.createStatement()){
             ResultSet rs = sta.executeQuery(query);
@@ -168,15 +171,18 @@ public class EjerMetadatos {
         }catch(SQLException e){
             System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
         }
+        pecharConexion();
     }
 
     //http://lineadecodigo.com/java/listar-los-drivers-con-jdbc/
-    public void listDrivers(){
+    public void listDrivers(String bd){
+        abrirConexion(bd, "localhost", "root", "");
         Enumeration<Driver> drivers = DriverManager.getDrivers();
         while(drivers.hasMoreElements()){
             Driver d = (Driver)drivers.nextElement();
             System.out.println(d.getClass().getName());
-        }        
+        }  
+        pecharConexion();      
     }
 
     public void abrirConexion(String bd, String servidor, String usuario, String password) {

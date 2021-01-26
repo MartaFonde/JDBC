@@ -6,5 +6,7 @@ public class AppTransacciones {
         // t.setImage("miImagen.jpg", "imagen.jpg");
         // t.getImage("miImagen.jpg");
         //t.executeGetAulas(25, "aula");
+        //t.executeSuma();
+        t.search("add", "a%");
     }
 }

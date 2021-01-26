@@ -5,7 +5,7 @@ public class AppConsultas {
         //Class.forName("org.mariadb.jdbc.Driver");
         ConsultasJDBC c = new ConsultasJDBC();
 
-        // c.consultarAlumnos("alumnos", "nombre", "fr");
+        c.consultarAlumnos("alumnos", "nombre", "fr");
         // c.insertarAlumno("Iris", "Seijo", 165, 5);
         // c.consultarAlumnos("alumnos", "nombre", "iris");
         // c.insertarMateria(11, "jjj");
