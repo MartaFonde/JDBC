@@ -51,7 +51,7 @@ public class ConsultasJDBC {
                     "INSERT INTO alumnos (nombre, apellidos, altura, aula) VALUES (\"%s\", \"%s\", %d, %d)", nombre,
                     apellidos, altura, aula);
             int filasAfectadas = executeUPDATE(query);
-            if(filasAfectadas != -1){
+            if (filasAfectadas != -1) {
                 System.out.println("Filas insertadas: " + filasAfectadas);
             }
         } else {
@@ -65,7 +65,7 @@ public class ConsultasJDBC {
         if (!existeDato("asignaturas", "cod", cod)) {
             int filasAfectadas = executeUPDATE(
                     "INSERT INTO asignaturas (cod, nombre) VALUES (" + cod + ", '" + nombre + "')");
-            if(filasAfectadas != -1){
+            if (filasAfectadas != -1) {
                 System.out.println("Filas inseridas: " + filasAfectadas);
             }
         } else {
@@ -78,7 +78,7 @@ public class ConsultasJDBC {
         abrirConexion("add", "localhost", "root", "");
         if (existeDato(tabla, col, cod)) {
             int filasAfectadas = executeUPDATE("DELETE FROM " + tabla + " WHERE " + col + "=" + cod);
-            if(filasAfectadas != -1){
+            if (filasAfectadas != -1) {
                 System.out.println("Filas eliminadas: " + filasAfectadas);
             }
         } else {
@@ -93,8 +93,8 @@ public class ConsultasJDBC {
             if (existeDato("aulas", "numero", aula)) {
                 int filasAfectadas = executeUPDATE("UPDATE alumnos set nombre='" + nombre + "', apellidos='" + apellidos
                         + "', altura=" + altura + ", aula=" + aula + " WHERE codigo = " + cod);
-                if(filasAfectadas != -1){
-                    System.out.println("Filas modificadas: " + filasAfectadas);  
+                if (filasAfectadas != -1) {
+                    System.out.println("Filas modificadas: " + filasAfectadas);
                 }
             } else {
                 System.out.println("Error: No existe ningún aula con ese código");
@@ -109,7 +109,7 @@ public class ConsultasJDBC {
         abrirConexion("add", "localhost", "root", "");
         if (existeDato("asignaturas", "cod", cod)) {
             int filasAfectadas = executeUPDATE("UPDATE asignaturas set nombre='" + nombre + "' WHERE cod = " + cod);
-            if(filasAfectadas != -1){
+            if (filasAfectadas != -1) {
                 System.out.println("Filas modificadas: " + filasAfectadas);
             }
         }
@@ -136,7 +136,7 @@ public class ConsultasJDBC {
 
     public void materiasSenAlumnos() {
         abrirConexion("add", "localhost", "root", "");
-        try (Statement sta = this.conexion.createStatement()){            
+        try (Statement sta = this.conexion.createStatement()) {
             String query = "select asignaturas.nombre from asignaturas left join notas on asignaturas.cod = notas.asignatura where nota is null";
             ResultSet rs = sta.executeQuery(query);
             while (rs.next()) {
@@ -148,9 +148,9 @@ public class ConsultasJDBC {
         cerrarConexion();
     }
 
-    public void alumAprobaronAlguna() {  
-        abrirConexion("add", "localhost", "root", "");      
-        try(Statement sta = this.conexion.createStatement()) {            
+    public void alumAprobaronAlguna() {
+        abrirConexion("add", "localhost", "root", "");
+        try (Statement sta = this.conexion.createStatement()) {
             ResultSet rs = sta.executeQuery("select distinct alumnos.nombre, alumnos.apellidos from notas "
                     + " join asignaturas on asignaturas.COD = notas.asignatura "
                     + " join alumnos on alumnos.codigo = notas.alumno where notas.nota >= 5");
@@ -165,13 +165,13 @@ public class ConsultasJDBC {
 
     public void consultarAlumnoSinPS(String cadena, int altura) {
         abrirConexion("add", "localhost", "root", "");
-        try(Statement sta = this.conexion.createStatement()) {            
+        try (Statement sta = this.conexion.createStatement()) {
             ResultSet rs = sta.executeQuery(
                     "select nombre from alumnos where nombre like '%" + cadena + "%' and altura>" + altura);
             while (rs.next()) {
                 rs.getString(1);
                 System.out.println(rs.getString("nombre"));
-            }            
+            }
         } catch (SQLException e) {
             System.out.println("Error: " + e.getLocalizedMessage());
         }
@@ -198,9 +198,9 @@ public class ConsultasJDBC {
         abrirConexion("add", "localhost", "root", "");
         String query = String.format("ALTER TABLE %s ADD %s %s %s", tabla, nombreCol, tipoDato, propiedades);
         int col = executeUPDATE(query);
-        if(col != 1){
+        if (col != 1) {
             System.out.println("Columna agregada");
-        }        
+        }
         cerrarConexion();
     }
 
@@ -209,20 +209,20 @@ public class ConsultasJDBC {
             int filasAfectadas = sta.executeUpdate(query);
             return filasAfectadas;
         } catch (SQLException e) {
-            System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage());            
-        }                
+            System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage());
+        }
         return -1;
     }
 
     public boolean existeDato(String tabla, String col, int cod) {
-        String query = "SELECT " + col + " FROM " + tabla + " WHERE " + col + "=" + cod;            
-        try(Statement sta = this.conexion.createStatement()) {
+        String query = "SELECT " + col + " FROM " + tabla + " WHERE " + col + "=" + cod;
+        try (Statement sta = this.conexion.createStatement()) {
             ResultSet rs = sta.executeQuery(query);
-            if(rs.next()){
+            if (rs.next()) {
                 return true;
-            }            
+            }
         } catch (SQLException e) {
-            System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage()); 
+            System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage());
         }
         return false;
     }
