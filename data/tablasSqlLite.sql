@@ -40,7 +40,6 @@ CREATE TABLE  imagenes (
   imagen blob
 );
 
-drop table alumnos;
 CREATE TABLE alumnos (
   codigo integer PRIMARY KEY NOT NULL,
   nombre varchar(14) NOT NULL,

@@ -7,6 +7,7 @@ public class AppTransacciones {
         // t.setImage("add", "girona.jpg", "C:\\Users\\marta\\Desktop\\girona.jpg");
         // t.executeGetAulas(25, "aula");
         // t.executeSuma();
-        t.search("add", "a%");
+        // t.search("add", "a%");
+        t.access();
     }
 }

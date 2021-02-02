@@ -25,6 +25,7 @@ public class EjerMetadatos {
 
     // exercicio 9b
     // https://docs.microsoft.com/es-es/sql/connect/jdbc/reference/getcatalogs-method-sqlserverdatabasemetadata?view=sql-server-ver15
+    // Ollo sql server!!
     public void getAllDB(String bd) {
         abrirConexion(bd, "localhost", "root", "");
         try {
@@ -49,7 +50,7 @@ public class EjerMetadatos {
         try {
             // this.conexion.setCatalog(bd);
             DatabaseMetaData mt = this.conexion.getMetaData();
-            ResultSet rs = mt.getTables(bd, null, "%", null);
+            ResultSet rs = mt.getTables(bd, null, null, null);
             while (rs.next()) {
                 System.out.println(rs.getString("TABLE_NAME") + " - " + rs.getString("TABLE_TYPE"));
                 // if(rs.getString("TABLE_TYPE").equals(type.toUpperCase())){ //TABLE - VIEW
@@ -67,11 +68,12 @@ public class EjerMetadatos {
         try {
             // this.conexion.setCatalog(bd);
             DatabaseMetaData mt = this.conexion.getMetaData();
-            ResultSet rs = mt.getTables(bd, null, "%", null);
+            // ResultSet rs = mt.getTables(bd, null, "%", null);
+            ResultSet rs = mt.getTables(bd, null, "%", new String[] { "VIEW" });
             while (rs.next()) {
-                if (rs.getString("TABLE_TYPE").equals("VIEW")) {
-                    System.out.println(rs.getString("TABLE_NAME"));
-                }
+                // if (rs.getString("TABLE_TYPE").equals("VIEW")) {
+                System.out.println(rs.getString("TABLE_NAME"));
+                // }
             }
         } catch (SQLException e) {
             System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage());
@@ -133,7 +135,7 @@ public class EjerMetadatos {
             ResultSet rs = mt.getTables(bd, null, "a%", null);
             while (rs.next()) {
                 if (rs.getString("TABLE_TYPE").equals("TABLE")) {
-                    ResultSet cols = this.conexion.getMetaData().getColumns(bd, null, rs.getString("TABLE_NAME"), "%");
+                    ResultSet cols = mt.getColumns(bd, null, rs.getString("TABLE_NAME"), "%");
                     while (cols.next()) {
                         System.out.printf(
                                 "Pos: %s\tBD: %s\tTabla: %s\tNombre: %s\t"
@@ -161,11 +163,11 @@ public class EjerMetadatos {
             while (rs.next()) {
                 if (rs.getString("TABLE_TYPE").equals("TABLE")) {
                     System.out.println("Tabla->" + rs.getString("TABLE_NAME"));
-                    ResultSet k = this.conexion.getMetaData().getPrimaryKeys(bd, null, rs.getString("TABLE_NAME"));
+                    ResultSet k = mt.getPrimaryKeys(bd, null, rs.getString("TABLE_NAME"));
                     while (k.next()) {
                         System.out.println(k.getString("PK_NAME") + "\t" + k.getString("COLUMN_NAME"));
                     }
-                    k = this.conexion.getMetaData().getExportedKeys(bd, null, rs.getString("TABLE_NAME"));
+                    k = mt.getExportedKeys(bd, null, rs.getString("TABLE_NAME"));
                     while (k.next()) {
                         System.out.println("Export tabla->" + k.getString("FKTABLE_NAME") + " col->"
                                 + k.getString("FKCOLUMN_NAME"));

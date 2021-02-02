@@ -145,7 +145,7 @@ public class TransaccionesJDBC {
         pecharConexion();
     }
 
-    //non pilla tabla
+    // non pilla tabla
     public void psFilasPatron(String bd, String tabla, String col, String patron) {
         try {
             if (this.psPatron == null) {
@@ -173,6 +173,7 @@ public class TransaccionesJDBC {
 
     public void access() {
         try {
+            // Class.forName("net.ucanaccess.jdbc.UcanaccessDriver");
             Connection conn = DriverManager.getConnection("jdbc:ucanaccess://data/Alumnos.mdb");
             if (conn != null)
                 System.out.println("Conectado a la base de datos");
