@@ -175,10 +175,19 @@ public class TransaccionesJDBC {
         try {
             // Class.forName("net.ucanaccess.jdbc.UcanaccessDriver");
             Connection conn = DriverManager.getConnection("jdbc:ucanaccess://data/Alumnos.mdb");
-            if (conn != null)
+            if (conn != null) {
                 System.out.println("Conectado a la base de datos");
-            else
+                String query = "select nombre, apellidos from alumnos";
+                Statement sta = conn.createStatement();
+                ResultSet rs = sta.executeQuery(query);
+                while (rs.next()) {
+                    System.out.println(rs.getString(1) + "\t" + rs.getString(2));
+                }
+                sta.close();
+                conn.close();
+            } else {
                 System.out.println("No se ha conectado a la base de datos");
+            }
         } catch (SQLException e) {
             System.out.println("SQLException: " + e.getLocalizedMessage());
             System.out.println("SQLState: " + e.getSQLState());

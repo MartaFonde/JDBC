@@ -1,9 +1,4 @@
 import java.sql.*;
-import java.util.Calendar;
-import java.util.Date;
-
-import javax.print.DocFlavor.STRING;
-import javax.xml.catalog.Catalog;
 
 public class EjerSQLite {
 
@@ -138,20 +133,18 @@ public class EjerSQLite {
         executeUPDATE(c, query);
     }
 
-    static void insertFechas(Connection c, Connection cSec, String nombre, int y, int m, int d, int h, int min, int seg, int nano) {
-        Timestamp ts = new Timestamp(y-1900, m-1, d-1, h, min, seg, nano);
-        //Date da = new Date(y, m, d, h, m, seg);
-        psFecha(c, nombre, ts);
-        psFecha(cSec, nombre, ts);        
+    static void insertFechas(Connection c, String nombre, int y, int m, int d, int h, int min, int seg) {
+        String dt = String.format("%d-%d-%d %d:%d:%d", y, m, d, h, min, seg);
+        psFecha(c, nombre, dt);
     }
 
-    static void psFecha(Connection c, String nombre, Timestamp dt) {
+    static void psFecha(Connection c, String nombre, String dt) {
         String query = "INSERT INTO fechas (nombre, fecha) VALUES (?,?);";
-        try(PreparedStatement ps = c.prepareStatement(query)){
+        try (PreparedStatement ps = c.prepareStatement(query)) {
             ps.setString(1, nombre);
-            ps.setTimestamp(2, dt);    
+            ps.setString(2, dt);
             ps.executeUpdate();
-        }catch(SQLException e){
+        } catch (SQLException e) {
             System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage());
         }
     }
@@ -185,7 +178,7 @@ public class EjerSQLite {
         String nameSQLite = "org.sqlite.JDBC";
         String nameMariaDB = "org.mariadb.jdbc.Driver";
 
-        String url = "jdbc:sqlite:/D:/DATOS/JDBC/data/addSqlLite.db";
+        String url = "jdbc:sqlite:/G:/DATOS/JDBC/data/addSqlLite.db";
         String urlSec = "jdbc:mariadb://localhost:3306/add";
 
         Connection c = abrirConexion(nameSQLite, url, "", "");
@@ -203,18 +196,26 @@ public class EjerSQLite {
         // insertSecTransaccionAulas(c, cSec, 18, "Laboratorio", 30);
 
         // crearTabla(c);
-        //crearTabla(cSec);
+        // crearTabla(cSec);
 
-        // String urlTres =
-        // "jdbc:mariadb://localhost:3306/add?jdbcCompliantTruncation=false&zeroDateTimeBehavior=convertToNull";
-        // Connection cTres = abrirConexion(nameMariaDB, urlTres, "root", "");
+        String urlTres = "jdbc:mariadb://localhost:3306/add?jdbcCompliantTruncation=false&zeroDateTimeBehavior=convertToNull";
+        Connection cTres = abrirConexion(nameMariaDB, urlTres, "root", "");
 
-        //insertFechas(c, cSec, "hoxe", 2020, 2, 2, 17, 38, 52, 12);
+        insertFechas(cSec, "truncatestacadlaaarga", 2020, 10, 15, 13, 8, 00);
 
-        
+        // Cadena de más de 10 char --> Error: (1406) (conn=14) Data too long for column
+        // 'nombre' at row 1
+        // En MySQL cSec non inserta. cTres si inserta y trunca cad. En SQLite si
+
+        // Insertando fecha vacía: en SQLite crea fila sen fecha.
+        // En MySLQ non crea fila -> Error: (1292) (conn=16) Incorrect datetime value:
+        // '' for column `add`.`fechas`.`fecha` at row 1
+
+        // insert into fechas values("fechaNueva", datetime('now'));
+        // insert into fechas values("fechaNueva2", datetime('now', 'localtime'));
 
         cerrarConexion(c);
         cerrarConexion(cSec);
-        // cerrarConexion(cTres);
+        cerrarConexion(cTres);
     }
 }
