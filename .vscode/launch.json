@@ -6,6 +6,41 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Launch EjerSQLite",
+            "request": "launch",
+            "mainClass": "EjerSQLite",
+            "projectName": "JDBC_f1367828"
+        },
+        {
+            "type": "java",
+            "name": "Launch EjerProcedAlmacenados",
+            "request": "launch",
+            "mainClass": "EjerProcedAlmacenados",
+            "projectName": "JDBC_f1367828"
+        },
+        {
+            "type": "java",
+            "name": "Launch EjerBuscaDato",
+            "request": "launch",
+            "mainClass": "EjerBuscaDato",
+            "projectName": "JDBC_f1367828"
+        },
+        {
+            "type": "java",
+            "name": "Launch EjerObjBinarios",
+            "request": "launch",
+            "mainClass": "EjerObjBinarios",
+            "projectName": "JDBC_f1367828"
+        },
+        {
+            "type": "java",
+            "name": "Launch EjerUcanaccess",
+            "request": "launch",
+            "mainClass": "EjerUcanaccess",
+            "projectName": "JDBC_f1367828"
+        },
+        {
+            "type": "java",
             "name": "Launch Current File",
             "request": "launch",
             "mainClass": "${file}"

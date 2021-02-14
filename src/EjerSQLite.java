@@ -2,6 +2,16 @@ import java.sql.*;
 
 public class EjerSQLite {
 
+    static String urlSqLite = "jdbc:sqlite:/D:/DATOS/JDBC/data/addSqlLite.db";
+    static String usuario = "root";
+    static String password = "";
+
+    static String nameSQLite = "org.sqlite.JDBC";
+    static String nameMariaDB = "org.mariadb.jdbc.Driver";
+
+    static String urlMariaDB = "jdbc:mariadb://localhost:3306/add";
+    static String urlMariaDB2 = "jdbc:mariadb://localhost:3306/add?jdbcCompliantTruncation=false&zeroDateTimeBehavior=convertToNull";
+   
     // Crear bd
     // sqlite3.exe ../JDBC/data/addSqlLite.db
 
@@ -11,8 +21,10 @@ public class EjerSQLite {
     // 3. Listar a segunda e terceira clase con máis postos
     // SELECT * FROM aulas ORDER BY puestos DESC LIMIT 1,2;
 
-    static void puestosMinAula(Connection c, int puestosMin) {
-        try (Statement sta = c.createStatement()) {
+    static void puestosMinAula(int puestosMin) {
+        try (Connection c = DriverManager.getConnection(urlSqLite);
+                Statement sta = c.createStatement()) {
+            
             ResultSet rs = sta.executeQuery("select * from aulas where puestos >= " + puestosMin);
             while (rs.next()) {
                 System.out
@@ -23,9 +35,10 @@ public class EjerSQLite {
         }
     }
 
-    static void psPuestosMinAula(Connection c, int puestosMin) {
+    static void psPuestosMinAula(int puestosMin) {
         String query = "select * from aulas where puestos >= ?";
-        try (PreparedStatement ps = c.prepareStatement(query)) {
+        try (Connection c = DriverManager.getConnection(urlSqLite); 
+                PreparedStatement ps = c.prepareStatement(query)) {
             ps.setInt(1, puestosMin);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
@@ -37,27 +50,18 @@ public class EjerSQLite {
         }
     }
 
-    static void insertarAula(Connection c, int numero, String nombreAula, int puestos) {
+    static void insertarAula(int numero, String nombreAula, int puestos) {
         String query = String.format("INSERT INTO aulas (numero, nombreAula, puestos) VALUES (%d, '%s', %d);", numero,
                 nombreAula, puestos);
-        int filasAfectadas = executeUPDATE(c, query);
+        int filasAfectadas = executeUPDATE(urlSqLite, query);
         if (filasAfectadas != -1) {
             System.out.println("Filas afectadas: " + filasAfectadas);
         }
     }
 
-    // https://www.mysqltutorial.org/mysql-replace.aspx
-    static void replaceAula(Connection c, int numero, String nombreAula, int puestos) {
-        String query = String.format("REPLACE INTO aulas (numero, nombreAula, puestos) VALUES (%d, '%s',%d);", numero,
-                nombreAula, puestos);
-        int filasAfectadas = executeUPDATE(c, query);
-        if (filasAfectadas != -1) {
-            System.out.println("Filas afectadas: " + filasAfectadas);
-        }
-    }
-
-    static int executeUPDATE(Connection c, String query) {
-        try (Statement sta = c.createStatement()) {
+    static int executeUPDATE(String url, String query) {
+        try (Connection c = DriverManager.getConnection(url, usuario, password);
+                Statement sta = c.createStatement()) {
             int filasAfectadas = sta.executeUpdate(query);
             return filasAfectadas;
         } catch (SQLException e) {
@@ -65,23 +69,42 @@ public class EjerSQLite {
         }
         return -1;
     }
+    //En SQLite non hai xestion de usuarios. Non farían falta parametros usuario e pass
+    //Pero esta función tamén se usa con urlMariaDB e si serán necesarios.
 
-    static void insertSecAlumnos(Connection c, Connection cSec, String nombre, String apellidos, int altura, int aula) {
+
+
+    static void replaceAula(int numero, String nombreAula, int puestos) {
+        String query = String.format("REPLACE INTO aulas (numero, nombreAula, puestos) VALUES (%d, '%s',%d);", numero,
+                nombreAula, puestos);
+        int filasAfectadas = executeUPDATE(urlSqLite, query);
+        if (filasAfectadas != -1) {
+            System.out.println("Filas afectadas: " + filasAfectadas);
+        }
+    }
+  
+    //inserta por duplicado en bd MySQL e SQLite
+    static void insertAlumnos(String nombre, String apellidos, int altura, int aula) {
         String query = String.format("INSERT INTO alumnos (nombre, apellidos, altura, aula) VALUES ('%s','%s',%d,%d)",
                 nombre, apellidos, altura, aula);
-        int filasAfectadas = executeUPDATE(c, query);
+        int filasAfectadas = executeUPDATE(urlSqLite, query);
         if (filasAfectadas != -1) {
             System.out.println("Filas afectadas SqlLite: " + filasAfectadas);
         }
-        filasAfectadas = executeUPDATE(cSec, query);
+
+        filasAfectadas = executeUPDATE(urlMariaDB , query);
         if (filasAfectadas != -1) {
             System.out.println("Filas afectadas MySQL: " + filasAfectadas);
         }
     }
 
-    static void buscaNombreAula(Connection c, Connection cSec, String patron) {
+    static void buscaNombreAula(String patron) {
         String query = "select * from aulas where nombreAula like '" + patron + "'";
-        try (Statement sta = c.createStatement(); Statement staSec = cSec.createStatement()) {
+        try (Connection c = DriverManager.getConnection(urlSqLite); 
+                Connection cSec = DriverManager.getConnection(urlMariaDB, usuario, password);
+                Statement sta = c.createStatement(); 
+                Statement staSec = cSec.createStatement()) {
+
             ResultSet rs = sta.executeQuery(query);
             ResultSet rsSec = staSec.executeQuery(query);
 
@@ -97,22 +120,20 @@ public class EjerSQLite {
             System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage());
         }
     }
+    
 
-    // SQLite se busca se dúas cadeas son similares (like) non distingue entre
-    // maiúsculas e minúsculas
-    // aínda que si que o fai entre vogais acentuadas ou sen acentuar
-    // MySQL non distingue entre maiúsculas e minúsculas ou entre vogais acentuadas
-    // ou sen acentuar.
+    static void insertConTransaccionAulas(int numero, String nombreAula, int puestos) {
+        Connection c = abrirConexion(nameSQLite, urlSqLite, "", "");
+        Connection cSec = abrirConexion(nameMariaDB, urlMariaDB, "root", "");
 
-    static void insertSecTransaccionAulas(Connection c, Connection cSec, int numero, String nombreAula, int puestos) {
         String query = String.format("INSERT INTO aulas(numero, nombreAula, puestos) VALUES (%d,'%s', %d)", numero,
                 nombreAula, puestos);
         try (Statement sta = c.createStatement(); Statement staSec = cSec.createStatement()) {
             c.setAutoCommit(false);
             cSec.setAutoCommit(false);
-            executeUPDATE(c, query);
-            executeUPDATE(cSec, query);
-            c.commit(); // se non se produce ningún erro confírmanse os cambios
+            executeUPDATE(urlSqLite, query);
+            executeUPDATE(urlMariaDB, query);
+            c.commit(); // se non se produce ningún erro confírmanse os cambios en AMBAS
             cSec.commit();
         } catch (SQLException e) {
             System.out.printf("Error: (%d) %s", e.getErrorCode(), e.getLocalizedMessage());
@@ -126,21 +147,29 @@ public class EjerSQLite {
                 System.out.println("Erro ao realizar o rollback: " + e.getLocalizedMessage());
             }
         }
+        finally{
+            cerrarConexion(c);
+            cerrarConexion(cSec);
+        }
     }
 
-    static void crearTabla(Connection c) {
-        String query = "CREATE TABLE `fechas`(`nombre` VARCHAR(10),`fecha` DATETIME not null);";
-        executeUPDATE(c, query);
+    static void crearTabla() {
+        String query = "CREATE TABLE `fechasPrueba`(`nombre` VARCHAR(10),`fecha` DATETIME not null);";
+        executeUPDATE(urlSqLite, query);
+        executeUPDATE(urlMariaDB, query);
     }
 
-    static void insertFechas(Connection c, String nombre, int y, int m, int d, int h, int min, int seg) {
+    static void insertFechas(String nombre, int y, int m, int d, int h, int min, int seg) {
         String dt = String.format("%d-%d-%d %d:%d:%d", y, m, d, h, min, seg);
-        psFecha(c, nombre, dt);
+        psFecha(urlSqLite, nombre, dt);
+        //psFecha(urlMariaDB, nombre, dt);
+        psFecha(urlMariaDB2, nombre, dt);
     }
 
-    static void psFecha(Connection c, String nombre, String dt) {
+    static void psFecha(String url, String nombre, String dt) {
         String query = "INSERT INTO fechas (nombre, fecha) VALUES (?,?);";
-        try (PreparedStatement ps = c.prepareStatement(query)) {
+        try (Connection c = DriverManager.getConnection(url, usuario, password);
+            PreparedStatement ps = c.prepareStatement(query)) {
             ps.setString(1, nombre);
             ps.setString(2, dt);
             ps.executeUpdate();
@@ -158,7 +187,8 @@ public class EjerSQLite {
             System.out.println("SQLException: " + e.getLocalizedMessage());
             System.out.println("SQLState: " + e.getSQLState());
             System.out.println("Código error: " + e.getErrorCode());
-        } catch (ClassNotFoundException o) {
+        } 
+        catch (ClassNotFoundException o) {
             System.out.println("Error :" + o.getMessage());
         }
         return conexion;
@@ -175,47 +205,57 @@ public class EjerSQLite {
     }
 
     public static void main(String[] args) {
-        String nameSQLite = "org.sqlite.JDBC";
-        String nameMariaDB = "org.mariadb.jdbc.Driver";
 
-        String url = "jdbc:sqlite:/G:/DATOS/JDBC/data/addSqlLite.db";
-        String urlSec = "jdbc:mariadb://localhost:3306/add";
+        //FUNCIONA IGUAL SEN ISTO
+        // try{
+        //     Class.forName(nameSQLite);
+        //
+        // }catch (ClassNotFoundException o) {
+        //     System.out.println("Error :" + o.getMessage());
+        // }
+        
 
-        Connection c = abrirConexion(nameSQLite, url, "", "");
-        Connection cSec = abrirConexion(nameMariaDB, urlSec, "root", "");
+        //puestosMinAula(30);
+        //psPuestosMinAula(30);
 
-        // puestosMinAula(c, 30);
-        // psPuestosMinAula(c, 30);
-        // insertarAula(c, 8, "Laboratorio", 25);
-        // replaceAula(c, 8, "Salon de actos", 32);
+        //insertarAula(88, "Laboratorio", 60);
 
-        // insertSecAlumnos(c, cSec, "Laura", "Fondevila", 165, 20);
+        //replaceAula(88, "Salon de actos", 32);
 
-        // buscaNombreAula(c, cSec, "a%");
-        // buscaNombreAula(c, cSec, "Anatomía");
-        // insertSecTransaccionAulas(c, cSec, 18, "Laboratorio", 30);
+        //insertAlumnos("Maria", "Zambrano", 165, 20);
 
-        // crearTabla(c);
-        // crearTabla(cSec);
+        //buscaNombreAula("fisica");
 
-        String urlTres = "jdbc:mariadb://localhost:3306/add?jdbcCompliantTruncation=false&zeroDateTimeBehavior=convertToNull";
-        Connection cTres = abrirConexion(nameMariaDB, urlTres, "root", "");
+        // SQLite busca se dúas cadeas son similares (like) non distingue entre
+        // maiúsculas e minúsculas. Si distingue entre vogais acentuadas ou sen acentuar
+        // MySQL non distingue entre maius e minus ou entre vogais acentuadas ou sen acentuar.
 
-        insertFechas(cSec, "truncatestacadlaaarga", 2020, 10, 15, 13, 8, 00);
+        //insertConTransaccionAulas(18, "Laboratorio", 30);
+        
+        //crearTabla();
+
+        //insertFechas("truncatestacadlaaaaaarga", 2020, 10, 15, 13, 8, 00);
 
         // Cadena de más de 10 char --> Error: (1406) (conn=14) Data too long for column
         // 'nombre' at row 1
-        // En MySQL cSec non inserta. cTres si inserta y trunca cad. En SQLite si
+        // En SQLite inserta
+        // En MySQL conexion 1 non inserta. 
+        // Conexion 2 con parametros si inserta e trunca cad. 
 
-        // Insertando fecha vacía: en SQLite crea fila sen fecha.
-        // En MySLQ non crea fila -> Error: (1292) (conn=16) Incorrect datetime value:
+        //Insertar con funcións propias de SGBD data e hora actual:
+        // insert into fechas values("fechaNueva", datetime('now'));
+        // SQLite almacena 1 hora menos. Solución:
+        // insert into fechas values("fechaNueva2", datetime('now', 'localtime'));       
+
+        //psFecha(urlSqLite, "sendata", "");
+        // En SQLite crea fila sen data. Garda cadea baleira
+
+        //psFecha(urlMariaDB, "sendata", "");
+        // non crea fila -> Error: (1292) (conn=354) Incorrect datetime value:
         // '' for column `add`.`fechas`.`fecha` at row 1
 
-        // insert into fechas values("fechaNueva", datetime('now'));
-        // insert into fechas values("fechaNueva2", datetime('now', 'localtime'));
-
-        cerrarConexion(c);
-        cerrarConexion(cSec);
-        cerrarConexion(cTres);
+        //psFecha(urlMariaDB2, "sendata2", "");
+        //Garda a cadea "0000-00-00".
+        
     }
 }
