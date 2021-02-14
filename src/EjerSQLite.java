@@ -162,7 +162,7 @@ public class EjerSQLite {
     static void insertFechas(String nombre, int y, int m, int d, int h, int min, int seg) {
         String dt = String.format("%d-%d-%d %d:%d:%d", y, m, d, h, min, seg);
         psFecha(urlSqLite, nombre, dt);
-        //psFecha(urlMariaDB, nombre, dt);
+        psFecha(urlMariaDB, nombre, dt);
         psFecha(urlMariaDB2, nombre, dt);
     }
 
