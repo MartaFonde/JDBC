@@ -236,10 +236,10 @@ public class EjerSQLite {
 
         //insertFechas("truncatestacadlaaaaaarga", 2020, 10, 15, 13, 8, 00);
 
-        // Cadena de más de 10 char --> Error: (1406) (conn=14) Data too long for column
-        // 'nombre' at row 1
+        // Cadena de más de 10 char  
         // En SQLite inserta
-        // En MySQL conexion 1 non inserta. 
+        // En MySQL conexion 1 non inserta. Error: (1406) (conn=14) Data too long for column
+        // 'nombre' at row 1
         // Conexion 2 con parametros si inserta e trunca cad. 
 
         //Insertar con funcións propias de SGBD data e hora actual:
